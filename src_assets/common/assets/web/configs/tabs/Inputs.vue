@@ -74,7 +74,7 @@ const keybindingPairs = ref(parseKeybindings(config.value.keybindings))
 
 const vigembusGamepads = new Set(['auto', 'x360', 'ds4'])
 const vigembusOnly = computed(() => props.platform === 'windows' && config.value.gamepad_driver === 'vigembus')
-const usbipDs5 = computed(() => props.platform === 'windows' && config.value.gamepad_driver === 'usbip_ds5')
+const usbipDriver = computed(() => props.platform === 'windows' && (config.value.gamepad_driver === 'usbip' || config.value.gamepad_driver === 'usbip_ds5'))
 const gamepadDriverSelection = computed({
   get: () => props.platform === 'macos' && !config.value.gamepad_driver ? 'virtualhid' : config.value.gamepad_driver,
   set: value => { config.value.gamepad_driver = value },
@@ -132,7 +132,7 @@ watch(
         <option v-if="platform === 'windows'" value="all">{{ $t('config.gamepad_driver_all') }}</option>
         <option value="virtualhid">{{ $t('config.gamepad_driver_virtualhid') }}</option>
         <option v-if="platform === 'windows'" value="vigembus">{{ $t('config.gamepad_driver_vigembus') }}</option>
-        <option v-if="platform === 'windows'" value="usbip_ds5">{{ $t('config.gamepad_driver_usbip_ds5') }}</option>
+        <option v-if="platform === 'windows'" value="usbip">{{ $t('config.gamepad_driver_usbip') }}</option>
         <option value="none">{{ $t('config.gamepad_driver_none') }}</option>
       </select>
       <div class="form-text">{{ $t(platform === 'macos' ? 'config.gamepad_driver_macos_desc' : 'config.gamepad_driver_desc') }}</div>
@@ -144,13 +144,13 @@ watch(
       <select id="gamepad" class="form-select" v-model="config.gamepad">
         <option value="auto">{{ $t('_common.auto') }}</option>
 
-        <option v-if="!vigembusOnly && !usbipDs5" value="generic">{{ $t("config.gamepad_generic") }}</option>
+        <option v-if="!vigembusOnly" value="generic">{{ $t("config.gamepad_generic") }}</option>
         <option value="x360">{{ $t('config.gamepad_x360') }}</option>
-        <option v-if="!vigembusOnly && !usbipDs5" value="xone">{{ $t("config.gamepad_xone") }}</option>
-        <option v-if="!vigembusOnly && !usbipDs5" value="xseries">{{ $t("config.gamepad_xseries") }}</option>
+        <option v-if="!vigembusOnly && !usbipDriver" value="xone">{{ $t("config.gamepad_xone") }}</option>
+        <option v-if="!vigembusOnly && !usbipDriver" value="xseries">{{ $t("config.gamepad_xseries") }}</option>
         <option value="ds4">{{ $t('config.gamepad_ds4') }}</option>
         <option v-if="!vigembusOnly" value="ds5">{{ $t("config.gamepad_ds5") }}</option>
-        <option v-if="!vigembusOnly && !usbipDs5" value="switch">{{ $t("config.gamepad_switch") }}</option>
+        <option v-if="!vigembusOnly" value="switch">{{ $t("config.gamepad_switch") }}</option>
       </select>
       <div class="form-text">{{ $t('config.gamepad_desc') }}</div>
     </div>

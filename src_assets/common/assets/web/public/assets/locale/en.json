@@ -271,7 +271,7 @@
     "gamepad_driver_macos_desc": "Choose Virtual HID Broker for virtual gamepads on macOS, or None to disable gamepads and broker notices. Keyboard and mouse input are unaffected.",
     "gamepad_driver_none": "None (disable gamepads)",
     "gamepad_driver_select": "Choose a backend...",
-    "gamepad_driver_usbip_ds5": "usbip-win2 DualSense (free)",
+    "gamepad_driver_usbip": "usbip-win2 (free: DualSense, DualShock 4, Xbox 360, Switch Pro, generic)",
     "gamepad_driver_vigembus": "ViGEmBus",
     "gamepad_driver_virtualhid": "Virtual HID Broker",
     "gamepad_ds4": "DS4 (PS4)",

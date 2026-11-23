@@ -1904,16 +1904,20 @@ namespace config {
                                                                         GAMEPAD_DRIVER_ALL,
                                                                         GAMEPAD_DRIVER_VIRTUALHID,
                                                                         GAMEPAD_DRIVER_VIGEMBUS,
-                                                                        GAMEPAD_DRIVER_USBIP_DS5,
+                                                                        GAMEPAD_DRIVER_USBIP,
+                                                                        GAMEPAD_DRIVER_USBIP_LEGACY,
                                                                         GAMEPAD_DRIVER_NONE,
                                                                       });
+    if (input.gamepad_driver == GAMEPAD_DRIVER_USBIP_LEGACY) {
+      input.gamepad_driver = GAMEPAD_DRIVER_USBIP;
+    }
     string_restricted_f(vars, "gamepad"s, input.gamepad, get_supported_gamepad_options());
 #ifdef _WIN32
     if (input.gamepad_driver == GAMEPAD_DRIVER_VIGEMBUS && input.gamepad != "auto"sv && input.gamepad != "x360"sv && input.gamepad != "ds4"sv) {
       BOOST_LOG(warning) << "Gamepad type '"sv << input.gamepad << "' is not supported by ViGEmBus; using automatic selection"sv;
       input.gamepad = "auto";
     }
-    if (input.gamepad_driver == GAMEPAD_DRIVER_USBIP_DS5 && input.gamepad != "auto"sv && input.gamepad != "x360"sv && input.gamepad != "ds4"sv && input.gamepad != "ds5"sv) {
+    if (input.gamepad_driver == GAMEPAD_DRIVER_USBIP && input.gamepad != "auto"sv && input.gamepad != "x360"sv && input.gamepad != "xone"sv && input.gamepad != "xseries"sv && input.gamepad != "ds4"sv && input.gamepad != "ds5"sv && input.gamepad != "switch"sv && input.gamepad != "generic"sv) {
       BOOST_LOG(warning) << "Gamepad type '"sv << input.gamepad << "' is not supported by the usbip-win2 backend; using automatic selection"sv;
       input.gamepad = "auto";
     }

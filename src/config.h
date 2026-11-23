@@ -42,7 +42,8 @@ namespace config {
   inline constexpr std::string_view GAMEPAD_DRIVER_ALL = "all";  ///< Allow every available Windows virtual gamepad driver.
   inline constexpr std::string_view GAMEPAD_DRIVER_VIRTUALHID = "virtualhid";  ///< Use Virtual HID Broker for gamepads on Windows or macOS.
   inline constexpr std::string_view GAMEPAD_DRIVER_VIGEMBUS = "vigembus";  ///< Allow only ViGEmBus for Windows gamepads.
-  inline constexpr std::string_view GAMEPAD_DRIVER_USBIP_DS5 = "usbip_ds5";  ///< Use the free usbip-win2 based DualSense emulation on Windows.
+  inline constexpr std::string_view GAMEPAD_DRIVER_USBIP = "usbip";  ///< Use the free usbip-win2 controller emulation on Windows.
+  inline constexpr std::string_view GAMEPAD_DRIVER_USBIP_LEGACY = "usbip_ds5";  ///< Older name of GAMEPAD_DRIVER_USBIP.
   inline constexpr std::string_view GAMEPAD_DRIVER_NONE = "none";  ///< Disable virtual gamepads on Windows and macOS.
 
   // track modified config options
