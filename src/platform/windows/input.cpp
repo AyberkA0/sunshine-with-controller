@@ -34,6 +34,7 @@
 #include "src/logging.h"
 #include "src/platform/common.h"
 #include "src/platform/virtualhid_input.h"
+#include "usbip_ds5.h"
 
 namespace platf {
   using namespace std::literals;
@@ -522,6 +523,7 @@ namespace platf {
   struct input_raw_t {
     virtualhid::input_context_t virtualhid;  ///< libvirtualhid input context.
     std::unique_ptr<vigem_t> vigem;  ///< ViGEm fallback context.
+    usbip_ds5::context_t usbip;  ///< usbip-win2 DualSense context.
   };
 
   /**
@@ -671,6 +673,13 @@ namespace platf {
       return 0;
     }
 
+    if (config::input.gamepad_driver == config::GAMEPAD_DRIVER_USBIP_DS5 && config::input.gamepad != "x360"sv && config::input.gamepad != "ds4"sv) {
+      if (usbip_ds5::alloc_gamepad(raw->usbip, id, feedback_queue) == 0) {
+        return 0;
+      }
+      BOOST_LOG(warning) << "usbip-win2 DualSense could not be created; falling back to ViGEmBus"sv;
+    }
+
     if (!should_allocate_vigembus_gamepad(use_virtualhid)) {
       return -1;
     }
@@ -729,6 +738,10 @@ namespace platf {
   int rebind_gamepad(input_t &input, const gamepad_id_t &id, feedback_queue_t feedback_queue) {
     auto raw = (input_raw_t *) input.get();
 
+    if (usbip_ds5::has_gamepad(raw->usbip, id.globalIndex)) {
+      return usbip_ds5::rebind_gamepad(raw->usbip, id, std::move(feedback_queue));
+    }
+
     if (virtualhid::has_gamepad(raw->virtualhid, id.globalIndex)) {
       return virtualhid::rebind_gamepad(raw->virtualhid, id, std::move(feedback_queue));
     }
@@ -742,6 +755,11 @@ namespace platf {
 
   void free_gamepad(input_t &input, int nr) {
     auto raw = (input_raw_t *) input.get();
+
+    if (usbip_ds5::has_gamepad(raw->usbip, nr)) {
+      usbip_ds5::free_gamepad(raw->usbip, nr);
+      return;
+    }
 
     if (virtualhid::has_gamepad(raw->virtualhid, nr)) {
       virtualhid::free_gamepad(raw->virtualhid, nr);
@@ -1006,6 +1024,10 @@ namespace platf {
    */
   void gamepad_update(input_t &input, int nr, const gamepad_state_t &gamepad_state) {
     auto raw = (input_raw_t *) input.get();
+    if (usbip_ds5::has_gamepad(raw->usbip, nr)) {
+      usbip_ds5::gamepad_update(raw->usbip, nr, gamepad_state);
+      return;
+    }
     if (virtualhid::has_gamepad(raw->virtualhid, nr)) {
       virtualhid::gamepad_update(raw->virtualhid, nr, gamepad_state);
       return;
@@ -1184,6 +1206,10 @@ namespace platf {
    */
   void gamepad_touch(input_t &input, const gamepad_touch_t &touch) {
     auto raw = (input_raw_t *) input.get();
+    if (usbip_ds5::has_gamepad(raw->usbip, touch.id.globalIndex)) {
+      usbip_ds5::gamepad_touch(raw->usbip, touch);
+      return;
+    }
     if (virtualhid::has_gamepad(raw->virtualhid, touch.id.globalIndex)) {
       virtualhid::gamepad_touch(raw->virtualhid, touch);
       return;
@@ -1218,6 +1244,10 @@ namespace platf {
    */
   void gamepad_motion(input_t &input, const gamepad_motion_t &motion) {
     auto raw = (input_raw_t *) input.get();
+    if (usbip_ds5::has_gamepad(raw->usbip, motion.id.globalIndex)) {
+      usbip_ds5::gamepad_motion(raw->usbip, motion);
+      return;
+    }
     if (virtualhid::has_gamepad(raw->virtualhid, motion.id.globalIndex)) {
       virtualhid::gamepad_motion(raw->virtualhid, motion);
       return;
@@ -1251,6 +1281,10 @@ namespace platf {
    */
   void gamepad_battery(input_t &input, const gamepad_battery_t &battery) {
     auto raw = (input_raw_t *) input.get();
+    if (usbip_ds5::has_gamepad(raw->usbip, battery.id.globalIndex)) {
+      usbip_ds5::gamepad_battery(raw->usbip, battery);
+      return;
+    }
     if (virtualhid::has_gamepad(raw->virtualhid, battery.id.globalIndex)) {
       virtualhid::gamepad_battery(raw->virtualhid, battery);
       return;
@@ -1299,6 +1333,14 @@ namespace platf {
       return gps;
     }
 
+    if (config::input.gamepad_driver == config::GAMEPAD_DRIVER_USBIP_DS5) {
+      const auto usbip = usbip_ds5::available();
+      gps = vigembus_supported_gamepads(raw->vigem != nullptr);
+      gps.push_back({"ds5", usbip, usbip ? "" : "gamepads.usbip-not-available"});
+      gps[0].is_enabled = gps[0].is_enabled || usbip;
+      return gps;
+    }
+
     if (!raw->virtualhid.runtime) {
       if (config::input.gamepad_driver == config::GAMEPAD_DRIVER_VIRTUALHID) {
         gps = virtualhid::static_supported_gamepads();
@@ -1330,7 +1372,9 @@ namespace platf {
   platform_caps::caps_t get_capabilities() {
     platform_caps::caps_t caps = 0;
 
-    if (config::input.gamepad_driver != config::GAMEPAD_DRIVER_NONE && virtualhid::configured_gamepad_supports_controller_extensions()) {
+    if (config::input.gamepad_driver == config::GAMEPAD_DRIVER_USBIP_DS5) {
+      caps |= platform_caps::controller_touch;
+    } else if (config::input.gamepad_driver != config::GAMEPAD_DRIVER_NONE && virtualhid::configured_gamepad_supports_controller_extensions()) {
       caps |= platform_caps::controller_touch;
     }
 
