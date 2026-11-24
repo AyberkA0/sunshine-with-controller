@@ -27,6 +27,7 @@
 
 // local includes
 #include "src/logging.h"
+#include "src/utility.h"
 #include "usbip_gamepad.h"
 
 using namespace std::literals;
@@ -662,6 +663,9 @@ namespace platf::usbip_gamepad {
       if (in.size() > length) {
         in.resize(length);
       }
+      BOOST_LOG(debug) << "usbip: "sv << dev.busid << " control bm="sv << util::hex(bm).to_string_view() << " req="sv << util::hex(req).to_string_view()
+                       << " value="sv << util::hex(value).to_string_view() << " index="sv << (setup[4] | (setup[5] << 8)) << " length="sv << length
+                       << " -> status="sv << status << " size="sv << in.size();
       return status;
     }
 
@@ -738,6 +742,7 @@ namespace platf::usbip_gamepad {
             std::lock_guard lg {dev->mtx};
             dev->profile->output(out.data(), out.size());
           }
+          BOOST_LOG(debug) << "usbip: "sv << dev->busid << " output report "sv << (out.empty() ? 0 : (int) out[0]) << ", "sv << out.size() << " bytes"sv;
           ok = send_ret_submit_out(*dev, s, seqnum, length, packets);
           pump_now();
         } else {
